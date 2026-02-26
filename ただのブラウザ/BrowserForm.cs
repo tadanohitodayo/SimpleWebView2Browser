@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Graph;
+using Microsoft.Identity.Client;
+using System.Net.Http.Headers;
+using System;
 using System.IO;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.WinForms;
@@ -8,6 +11,12 @@ namespace MyTabBrowser
 {
     public class BrowserForm : Form
     {
+        // --- Microsoft 365 Developer Program Support ---
+        // Plan: Integrate Microsoft Graph to show Outlook Calendar in a side panel.
+        // Scope: User.Read, Calendars.Read
+        private static string ClientId = "00000000-0000-0000-0000-000000000000";
+        private IPublicClientApplication _pca;
+
         private TabControl tabs;
         private Button backBtn, forwardBtn, newTabBtn;
         private string historyFile = "history.txt";
@@ -16,7 +25,8 @@ namespace MyTabBrowser
         {
             Width = 1000;
             Height = 700;
-            Text = "Simple WebView2 Browser"; // 汎用的なタイトル
+            Text = "M365 Graph Explorer Browser";
+
 
             // UIコントロールの作成
             backBtn = new Button { Text = "←", Left = 10, Width = 40, Top = 5 };
