@@ -10,11 +10,20 @@ using Microsoft.Web.WebView2.Core;
 namespace MyTabBrowser
 {
     public class BrowserForm : Form
-    {
-        // --- Microsoft 365 Developer Program Support ---
-        // Plan: Integrate Microsoft Graph to show Outlook Calendar in a side panel.
-        // Scope: User.Read, Calendars.Read
-        // Shifted to Dev Account
+    { // ==========================================================
+      // Developer: tadanohitodayo (tadanohito.dev)
+      // Passion: I absolutely love Microsoft! 
+      // Among the Big 3, Microsoft is my top choice and my inspiration.
+      // Thank you for the incredible .NET 10 & WebView2 ecosystem.
+      // ==========================================================
+      // --- Microsoft 365 Developer Program Support ---
+      // Plan: Integrate Microsoft Graph to show Outlook Calendar in a side panel.
+      // Scope: User.Read, Calendars.Read
+      // Shifted to Dev Account
+      // [PLAN] E5 License Integration
+      // I am eagerly waiting for the Microsoft 365 E5 Sandbox.
+      // My goal is to build an AI-powered browser that empowers everyone 
+      // using the Microsoft Graph API. I love building on this platform!
         private static string ClientId = "00000000-0000-0000-0000-000000000000";
         private IPublicClientApplication _pca;
 
