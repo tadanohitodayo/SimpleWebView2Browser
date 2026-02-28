@@ -14,6 +14,7 @@ namespace MyTabBrowser
         // --- Microsoft 365 Developer Program Support ---
         // Plan: Integrate Microsoft Graph to show Outlook Calendar in a side panel.
         // Scope: User.Read, Calendars.Read
+        // Shifted to Dev Account
         private static string ClientId = "00000000-0000-0000-0000-000000000000";
         private IPublicClientApplication _pca;
 
