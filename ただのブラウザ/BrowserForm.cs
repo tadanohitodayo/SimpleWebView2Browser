@@ -17,6 +17,7 @@ namespace MyTabBrowser
         // Developer: tadanohito.dev
         // Mission: E5 Sandbox Hunt / Microsoft Graph v5 Integration
         // [STATUS] Build 10.0.2026 - All Errors Resolved
+        // Update: Verifying active developer status for M365 E5
         // ==========================================================
 
         private static string ClientId = "00000000-0000-0000-0000-000000000000";
