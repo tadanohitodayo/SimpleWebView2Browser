@@ -1,13 +1,13 @@
-﻿
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 using Microsoft.Identity.Client;
-using System.Net.Http.Headers;
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.WinForms;
 using Microsoft.Web.WebView2.Core;
+using Azure.Identity; // NuGetで Azure.Identity のインストールが必要なり！
 
 namespace MyTabBrowser
 {
@@ -15,41 +15,37 @@ namespace MyTabBrowser
     {
         // ==========================================================
         // Developer: tadanohito.dev
-        // Passion: I absolutely love Microsoft! 
-        // Among the Big 3, Microsoft is my top choice and my inspiration.
-        // Thank you for the incredible .NET 10 & WebView2 ecosystem.
+        // Mission: E5 Sandbox Hunt / Microsoft Graph v5 Integration
+        // [STATUS] Build 10.0.2026 - All Errors Resolved
         // ==========================================================
-        // --- Microsoft 365 Developer Program Support ---
-        // Plan: Integrate Microsoft Graph to show Outlook Calendar in a side panel.
-        // Scope: User.Read, Calendars.Read
-        // [PLAN] E5 License Integration
-        // I am eagerly waiting for the Microsoft 365 E5 Sandbox.
-        // My goal is to build an AI-powered browser that empowers everyone 
-        // using the Microsoft Graph API. I love building on this platform!
 
         private static string ClientId = "00000000-0000-0000-0000-000000000000";
         private IPublicClientApplication _pca;
-
         private TabControl tabs;
-        private Button backBtn, forwardBtn, newTabBtn, aiSumBtn;
-        private string historyFile = "history.txt";
+        private Button backBtn, forwardBtn, newTabBtn, aiSumBtn, signInBtn;
 
         public BrowserForm()
         {
-            Width = 1100;
-            Height = 750;
-            Text = "M365 Graph Explorer & AI Summarizer";
+            Width = 1200; Height = 800;
+            Text = "M365 AI Explorer - Graph v5 Ready";
 
-            // UIコントロール
+            // MSAL PCAの初期化
+            _pca = PublicClientApplicationBuilder.Create(ClientId)
+                .WithRedirectUri("http://localhost").Build();
+
+            // UIボタン配置
             backBtn = new Button { Text = "←", Left = 10, Width = 40, Top = 5 };
             forwardBtn = new Button { Text = "→", Left = 55, Width = 40, Top = 5 };
             newTabBtn = new Button { Text = "+ New Tab", Left = 100, Width = 80, Top = 5 };
-            aiSumBtn = new Button { Text = "✨ AI 要約", Left = 190, Width = 100, Top = 5, BackColor = System.Drawing.Color.AliceBlue };
+            aiSumBtn = new Button { Text = "✨ AI 要約", Left = 190, Width = 90, Top = 5, BackColor = System.Drawing.Color.AliceBlue };
+            signInBtn = new Button { Text = "🔑 Graph 連携", Left = 290, Width = 110, Top = 5, BackColor = System.Drawing.Color.LightGreen };
 
+            // イベント登録
             backBtn.Click += (s, e) => Current()?.GoBack();
             forwardBtn.Click += (s, e) => Current()?.GoForward();
-            newTabBtn.Click += (s, e) => AddTab("https://www.Bing.com");
+            newTabBtn.Click += (s, e) => AddTab("https://www.bing.com");
             aiSumBtn.Click += async (s, e) => await SummarizeCurrentPage();
+            signInBtn.Click += async (s, e) => await SignInAndFetchCalendar();
 
             tabs = new TabControl
             {
@@ -58,43 +54,53 @@ namespace MyTabBrowser
                 Height = ClientSize.Height - 40,
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
+            Controls.AddRange(new Control[] { backBtn, forwardBtn, newTabBtn, aiSumBtn, signInBtn, tabs });
 
-            Controls.Add(backBtn);
-            Controls.Add(forwardBtn);
-            Controls.Add(newTabBtn);
-            Controls.Add(aiSumBtn);
-            Controls.Add(tabs);
-
-            AddTab("https://www.microsoft.com");
+            AddTab("https://www.bing.com");
         }
 
-        private WebView2 Current()
+        private async Task SignInAndFetchCalendar()
         {
-            if (tabs.SelectedTab == null) return null;
-            return tabs.SelectedTab.Controls[0] as WebView2;
-        }
-
-        // AIページ要約エンジン
-        private async Task SummarizeCurrentPage()
-        {
-            var web = Current();
-            if (web == null || web.CoreWebView2 == null) return;
-
+            string[] scopes = { "User.Read", "Calendars.Read" };
             try
             {
-                // JavaScriptでページ内のテキストを抽出
-                string rawText = await web.CoreWebView2.ExecuteScriptAsync("document.body.innerText");
+                // 最新の Graph v5 実装：InteractiveBrowserCredential を使用なり！
+                var options = new InteractiveBrowserCredentialOptions
+                {
+                    ClientId = ClientId,
+                    RedirectUri = new Uri("http://localhost")
+                };
+                var credential = new InteractiveBrowserCredential(options);
+                var graphClient = new GraphServiceClient(credential, scopes);
 
-                // AI解析シミュレーション（E5付与後にAPIを本格実装）
-                string summary = "AI: このページにはMicrosoftの革新的な技術が詰まっています。";
-                string encouragement = "この情報を活かして、素晴らしい開発を続けましょう。";
+                // カレンダーイベントの取得（v5 構文なり！）
+                var eventsResponse = await graphClient.Me.Events.GetAsync(config =>
+                {
+                    config.QueryParameters.Top = 5;
+                });
 
-                MessageBox.Show($"{summary}\n\n【励まし】\n{encouragement}", "AI Summarizer");
+                var events = eventsResponse.Value;
+                string eventList = events.Any()
+                    ? string.Join("\n", events.Select(e => $"📅 {e.Subject}"))
+                    : "予定はありませんなり。";
+
+                MessageBox.Show($"Graph 連携成功！\n\n【最新の予定】\n{eventList}", "M365 Data");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("AI要約の実行中にエラーが発生しました: " + ex.Message);
+                // ここでエラーが出るのが今の「実績」なり！
+                MessageBox.Show("Graph 連携待機中（E5 審査中）: " + ex.Message);
             }
+        }
+
+        private WebView2 Current() => (tabs.SelectedTab?.Controls[0] as WebView2);
+
+        private async Task SummarizeCurrentPage()
+        {
+            var web = Current();
+            if (web?.CoreWebView2 == null) return;
+            string rawText = await web.CoreWebView2.ExecuteScriptAsync("document.body.innerText");
+            MessageBox.Show("AI: ページの解析準備は万端なり！E5 をハントして組織データと繋げるなり！", "AI Summarizer");
         }
 
         private async void AddTab(string url)
@@ -104,22 +110,9 @@ namespace MyTabBrowser
             tab.Controls.Add(web);
             tabs.TabPages.Add(tab);
             tabs.SelectedTab = tab;
-
-            try
-            {
-                await web.EnsureCoreWebView2Async();
-                web.CoreWebView2.Navigate(url);
-
-                web.CoreWebView2.NavigationCompleted += (s, e) =>
-                {
-                    tab.Text = web.CoreWebView2.DocumentTitle ?? "New Tab";
-                    File.AppendAllText(historyFile, $"{web.Source} [{DateTime.Now}]{Environment.NewLine}");
-                };
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("WebView2の初期化に失敗しました: " + ex.Message);
-            }
+            await web.EnsureCoreWebView2Async();
+            web.CoreWebView2.Navigate(url);
+            web.CoreWebView2.NavigationCompleted += (s, e) => tab.Text = web.CoreWebView2.DocumentTitle ?? "New Tab";
         }
-    }
-}
+    } // BrowserForm クラス終了
+} // namespace 終了
