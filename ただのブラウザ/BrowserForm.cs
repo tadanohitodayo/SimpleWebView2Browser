@@ -74,7 +74,7 @@ namespace MyTabBrowser
                 var credential = new InteractiveBrowserCredential(options);
                 var graphClient = new GraphServiceClient(credential, scopes);
 
-                // カレンダーイベントの取得（v5 構文なり！）
+                // カレンダーイベントの取得（v5 構文！）
                 var eventsResponse = await graphClient.Me.Events.GetAsync(config =>
                 {
                     config.QueryParameters.Top = 5;
@@ -89,7 +89,8 @@ namespace MyTabBrowser
             }
             catch (Exception ex)
             {
-                // ここでエラーが出るのが今の「実績」なり！
+                // E5が手に入ったら爆速で作る
+                // ここでエラーが出るのが今の「実績」！
                 MessageBox.Show("Graph 連携待機中（E5 審査中）: " + ex.Message);
             }
         }
